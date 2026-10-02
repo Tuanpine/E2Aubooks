@@ -1,0 +1,28 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Model weights: multi-GB, fetched by scripts/download_models.js
+models/
+
+# Runtime state: SQLite library + uploaded books + rendered audio
+# Anchored: an unanchored "data/" also swallows src/data/ (voice + model catalogs).
+/data/
+audiobooks_output/
+ebooks_queue/
+
+# One-off diagnostic scripts kept after a session
+.trash_scripts/
+
+# nohup output from the batch CLI -- logs can name the books being converted
+nohup.out
+*.out
+
+# Python bytecode
+__pycache__/
+*.pyc

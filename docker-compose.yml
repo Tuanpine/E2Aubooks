@@ -1,0 +1,70 @@
+# ===================================================
+# E2Aubooks - Docker Compose
+#
+# The app spawns its own TTS daemons (one per engine) inside the container, so
+# no daemon service and no host.docker.internal is needed: the image ships the
+# Python runtime and the daemon source.
+#
+#   CPU : docker compose up -d
+#   GPU : docker compose --profile gpu up -d      (needs NVIDIA Container Toolkit)
+# ===================================================
+
+x-common: &common
+  restart: unless-stopped
+  ports:
+    - "8080:3000"
+  volumes:
+    # model weights are multi-GB; keep them on a volume, not in the image
+    - ./models:/app/models
+    # VieNeu decodes audio with the MOSS codec, which transformers pulls from
+    # the HF Hub at boot (~85 MB). Without this the container needs internet
+    # on first start.
+    - ${HF_CACHE_DIR:-$HOME/.cache/huggingface}:/root/.cache/huggingface
+    # ebook input and rendered audio, so results survive `docker compose down`
+    - ./ebooks_queue:/app/ebooks_queue
+    - ./audiobooks_output:/app/audiobooks_output
+    # SQLite index + uploaded books and rendered audio (survives rebuilds)
+    - ./data:/app/data
+  environment: &common-env
+    NODE_ENV: production
+    PORT: "3000"
+    ONNX_THREADS: "4"
+    TTS_IDLE_TIMEOUT_MS: "300000"
+
+services:
+  # -------------------------------------------------
+  # CPU — works on any host, no NVIDIA toolkit required
+  # -------------------------------------------------
+  e2aubooks:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime-cpu
+    container_name: e2aubooks
+    <<: *common
+    environment:
+      <<: *common-env
+      DEVICE: cpu
+    # no profile: `docker compose up -d` should start this one with no flags
+
+  # -------------------------------------------------
+  # GPU — VieNeu runs on CUDA float16 (~0.3s per sentence)
+  # -------------------------------------------------
+  e2aubooks-gpu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime-gpu
+    container_name: e2aubooks-gpu
+    <<: *common
+    environment:
+      <<: *common-env
+      DEVICE: cuda
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    profiles: [gpu]

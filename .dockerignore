@@ -1,0 +1,20 @@
+node_modules
+dist
+.git
+.github
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env.local
+.env
+# model weights live on a volume, never in the image
+models
+# rendered audio and ebook input are volumes too
+audiobooks_output
+ebooks_queue
+# SQLite library + uploaded books/audio: state, not build input
+data
+# test fixtures the batch CLI does not need at runtime
+docker/tts/vieneu-src/vieneu/assets/samples

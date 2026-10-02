@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .font-literata {
+    font-family: 'Literata', Georgia, serif;
+  }
+  .font-merriweather {
+    font-family: 'Merriweather', Georgia, serif;
+  }
+  .font-lora {
+    font-family: 'Lora', Georgia, serif;
+  }
+  .font-roboto-slab {
+    font-family: 'Roboto Slab', Georgia, serif;
+  }
+  .font-inter {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  .font-mono-reader {
+    font-family: 'Fira Code', ui-monospace, SFMono-Regular, monospace;
+  }
+}

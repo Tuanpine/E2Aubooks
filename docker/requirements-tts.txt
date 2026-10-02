@@ -1,0 +1,21 @@
+# Python runtime for the local TTS daemons (one per engine: vieneu/mms/kokoro).
+# Only what the code paths we actually exercise import — the VieNeu source tree
+# also references llama_cpp/lmdeploy/triton/librosa for features we do not use,
+# and installing those would add gigabytes for nothing.
+torch==2.12.1
+torchaudio==2.11.0
+# VieNeu 3.8's engine needs transformers below 5; 5.x cannot build its tokenizer.
+transformers==4.57.6
+onnxruntime==1.30.0
+scipy==1.18.0
+numpy==2.5.0
+soundfile==0.14.0
+# VieNeu turns text to phonemes before synthesis; without this the engine
+# raises ModuleNotFoundError on the very first request.
+sea-g2p==0.7.16
+# Kokoro-Vietnamese phonemises Vietnamese text through vig2p instead, and its
+# voice packs are torch .pt files read with torch.load.
+vig2p==0.1.2
+# transformers pulls these in, but pin them so the image also resolves offline
+safetensors
+huggingface_hub
