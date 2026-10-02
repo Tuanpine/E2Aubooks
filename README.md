@@ -12,21 +12,72 @@
 
 Mọi trọng số model tải về máy, không có lời gọi API đám mây nào trong đường chính.
 
+![Giao diện E2Aubooks](docs/images/01-studio.png)
+
 ---
 
 ## 📑 Mục lục
-1. [Cấu trúc thư mục](#1-cấu-trúc-thư-mục)
-2. [Tính năng](#2-tính-năng)
-3. [Mô hình TTS & giọng đọc](#3-mô-hình-tts--giọng-đọc)
-4. [API HTTP](#4-api-http)
-5. [Cài đặt & Build](#5-cài-đặt--build)
-6. [Docker](#6-docker)
-7. [Lưu ý kỹ thuật](#7-lưu-ý-kỹ-thuật)
-8. [Giấy phép](#8-giấy-phép)
+1. [Giao diện](#1-giao-diện)
+2. [Cấu trúc thư mục](#2-cấu-trúc-thư-mục)
+3. [Tính năng](#3-tính-năng)
+4. [Mô hình TTS & giọng đọc](#4-mô-hình-tts--giọng-đọc)
+5. [API HTTP](#5-api-http)
+6. [Cài đặt & Build](#6-cài-đặt--build)
+7. [Docker](#7-docker)
+8. [Lưu ý kỹ thuật](#8-lưu-ý-kỹ-thuật)
+9. [Giấy phép](#9-giấy-phép)
 
 ---
 
-## 1. Cấu trúc thư mục
+## 1. Giao diện
+
+Ảnh chụp từ bản chạy thật, sách mẫu *Dế Mèn Phiêu Lưu Ký* đi kèm sẵn.
+
+### Studio đọc
+
+Teleprompter tự cuộn theo câu đang đọc, ngăn mục lục, tốc độ, cao độ, âm lượng, hẹn giờ dừng, nhạc nền.
+
+![Mục lục chương](docs/images/08-chapters.png)
+
+### Quản lý mô hình TTS
+
+Ba model từ Hugging Face, verify link trước khi tải, tải nền có tiến độ, xoá khi không dùng.
+
+![Quản lý mô hình](docs/images/02-model-manager.png)
+
+### Bộ chọn giọng đọc
+
+41 giọng, lọc theo engine, phần cứng và vùng miền; nghe thử từng giọng.
+
+![Bộ chọn giọng](docs/images/03-voice-picker.png)
+
+### Đa vai & cảm xúc
+
+Gán 3 giọng cho dẫn chuyện / nam / nữ, bật 8 thẻ cảm xúc cho VieNeu.
+
+![Phân vai và cảm xúc](docs/images/05-cast-emotion.png)
+
+### Từ điển phát âm
+
+21 quy tắc mặc định (đơn vị, viết tắt, số La Mã, tên riêng), sửa và xem trước tức thì.
+
+![Từ điển phát âm](docs/images/06-pronunciation.png)
+
+### Xuất audio
+
+WAV/MP3, hòa nhạc nền, xuất từng chương hoặc cả cuốn.
+
+![Xuất audio](docs/images/04-export.png)
+
+### Batch qua đêm
+
+Kéo thả nhiều sách, tiến độ từng cuốn, GPU cooldown giữa các cuốn.
+
+![Batch convert](docs/images/07-batch.png)
+
+---
+
+## 2. Cấu trúc thư mục
 
 ```text
 e2aubooks/
@@ -78,9 +129,9 @@ e2aubooks/
 
 ---
 
-## 2. Tính năng
+## 3. Tính năng
 
-### 2.1. Nạp & bóc sách
+### 3.1. Nạp & bóc sách
 | Định dạng | Cách bóc |
 |---|---|
 | EPUB (2 & 3) | Giải nén ZIP (JSZip), đọc `container.xml` → OPF → spine, lấy ảnh bìa, tách từng chương |
@@ -91,7 +142,7 @@ e2aubooks/
 
 Sách 0 chương bị **từ chối ngay** (HTTP 422) kèm giải thích — PDF scan không có lớp chữ cần OCR trước, không phải tệp hỏng.
 
-### 2.2. Đọc & điều khiển
+### 3.2. Đọc & điều khiển
 - Teleprompter tự cuộn theo câu đang phát (`scrollIntoView`).
 - Bấm vào câu bất kỳ để nhảy tới và đọc ngay.
 - Tốc độ `0.5x – 3.0x` (preset + slider), cao độ `0.6 – 1.4`, âm lượng + tắt tiếng.
@@ -100,12 +151,12 @@ Sách 0 chương bị **từ chối ngay** (HTTP 422) kèm giải thích — PDF
 - 6 chủ đề (`dark`, `light`, `gray`, `sepia`, `paper`, `obsidian`) × 6 phông (`literata`, `merriweather`, `lora`, `roboto-slab`, `inter`, `mono`).
 - Ngăn kéo mục lục chương, biểu đồ sóng thời gian thực.
 
-### 2.3. Đọc đa vai & cảm xúc
+### 3.3. Đọc đa vai & cảm xúc
 - `dialogueCaster.ts` tách lời dẫn chuyện với lời thoại trong dấu ngoặc kép, gán vai `narrator` / `male_lead` / `female_lead` theo ngữ cảnh quanh câu, rồi map sang 3 giọng độc lập trong UI.
 - `emotionTagger.ts` gắn 1 trong 8 thẻ: `[cười]`, `[thở dài]`, `[ngạc nhiên]`, `[thì thầm]`, `[tức giận]`, `[buồn bã]`, `[hồi hộp]`, `[nghẹn ngào]`.
 - Thẻ hiển thị trên màn hình đọc và **được gỡ bỏ ở server** trước khi tổng hợp (`EMOTION_TAG_RE` trong `server.ts`) — để không bị đọc thành tiếng.
 
-### 2.4. Chuẩn hóa phát âm
+### 3.4. Chuẩn hóa phát âm
 `pronunciationLexicon.ts` có **21 quy tắc mặc định** trong 3 nhóm:
 - **Đơn vị** (7): `km/h`, `km`, `kg`, `%`, `°C`, `VND/đ`, `$`.
 - **Viết tắt & số La Mã** (9): `TP.HCM`, `TP.HN`, `PGS.TS`, `GS.TS`, `ThS`, `AI`, `thế kỷ XXI/XX/XIX`.
@@ -113,23 +164,23 @@ Sách 0 chương bị **từ chối ngay** (HTTP 422) kèm giải thích — PDF
 
 Áp dụng cho mọi câu trước khi đọc. `PronunciationLexiconModal` cho thêm/sửa/tắt quy tắc với **Live Preview** và lưu vào `localStorage`.
 
-### 2.5. Nhạc nền offline
+### 3.5. Nhạc nền offline
 `ambientSoundscapes.ts` tổng hợp bằng Web Audio API, không cần file nhạc: `rain`, `fireplace`, `waves`, `night`, `lofi`, cộng `none`. Âm lượng 5%–60%, hòa trực tiếp vào luồng PCM trước khi ghi WAV.
 
-### 2.6. Xuất & lưu trữ
+### 3.6. Xuất & lưu trữ
 - **WAV 24 kHz mono 16-bit PCM**, ngắt câu 0.35 s, nhạc nền đã hòa.
 - **MP3** tuỳ chọn (96/128/192/320 kbps) qua `ffmpeg`; không có `ffmpeg` thì giữ WAV.
 - Lưu vào thư viện SQLite (sách + audio) để mở lại sau; tải/xoá từ `LibraryModal`.
 
 > Metadata hiện chỉ hiển thị ở hộp thoại xuất — **chưa nhúng tag ID3 thật** vào file âm thanh.
 
-### 2.7. Batch & thư viện
+### 3.7. Batch & thư viện
 - `BatchConvertModal`: kéo thả nhiều sách, tiến độ từng cuốn, **GPU Cooldown** giữa các cuốn, xuất tệp ngay khi xong.
 - CLI `scripts/audiobook.js` chạy nền không cần trình duyệt, có checkpoint để chạy lại tiếp — xem [README_CLI.md](README_CLI.md).
 
 ---
 
-## 3. Mô hình TTS & giọng đọc
+## 4. Mô hình TTS & giọng đọc
 
 `src/data/modelCatalog.ts` là nguồn duy nhất (server và UI cùng đọc):
 
@@ -153,7 +204,7 @@ Thêm `Web Speech` của trình duyệt (`native`) làm lựa chọn dự phòng
 
 ---
 
-## 4. API HTTP
+## 5. API HTTP
 
 Express trong `server.ts`, cổng lấy từ `PORT` (mặc định **3000**; `run.sh` mặc định **3222**).
 
@@ -191,7 +242,7 @@ Express trong `server.ts`, cổng lấy từ `PORT` (mặc định **3000**; `ru
 
 ---
 
-## 5. Cài đặt & Build
+## 6. Cài đặt & Build
 
 **Yêu cầu**: Node.js 18/20/22, npm, Python 3.10+ (chỉ khi chạy TTS cục bộ ngoài Docker).
 
@@ -221,7 +272,7 @@ Chạy song song hai instance (ví dụ hai GPU):
 
 ---
 
-## 6. Docker
+## 7. Docker
 
 Yêu cầu cho chế độ GPU: [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
 
@@ -239,7 +290,7 @@ Image build theo tầng `build` (Node 22) → `tts-cpu` / `tts-gpu` (Python 3.12
 
 ---
 
-## 7. Lưu ý kỹ thuật
+## 8. Lưu ý kỹ thuật
 
 1. **Autoplay policy** — Chrome/Safari/Firefox chặn `AudioContext` và `speechSynthesis` trước lần tương tác đầu tiên. `audioEngine.ts` và `ambientSoundscapes.ts` gọi `ctx.resume()` khi có tương tác; đừng xoá.
 2. **Giới hạn độ dài câu** — VieNeu đẩy toàn bộ prompt lên GPU; một đoạn 400 câu đòi ~16.6 GiB và OOM card 12 GB. `server.ts` chặn ở `TTS_MAX_CHARS` (1200) và yêu cầu chia nhỏ trước. Client đã gửi từng câu một; guard này bảo vệ CLI batch và mọi caller sau này.
@@ -252,7 +303,7 @@ Image build theo tầng `build` (Node 22) → `tts-cpu` / `tts-gpu` (Python 3.12
 
 ---
 
-## 8. Giấy phép
+## 9. Giấy phép
 
 **Apache License 2.0** — xem [LICENSE](LICENSE).
 

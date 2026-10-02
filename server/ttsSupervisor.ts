@@ -1,6 +1,9 @@
 import { spawn, ChildProcess, execFileSync } from 'child_process';
 import { request } from 'http';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Spawns local TTS daemons on demand and kills them once idle, so a multi-GB
@@ -16,7 +19,7 @@ export type EngineId = 'vieneu' | 'mms' | 'kokoro';
 // Override with TTS_PYTHON when torch/onnxruntime live in another interpreter.
 const PYTHON = process.env.TTS_PYTHON || 'python3';
 const DAEMON = process.env.TTS_DAEMON
-  || path.join(__dirname, '..', 'docker', 'tts', 'tts_daemon.py');
+  || path.join(HERE, '..', 'docker', 'tts', 'tts_daemon.py');
 const MODELS = process.env.TTS_MODELS_DIR
   || `${process.cwd()}/models`;
 // Ask the GPU rather than trust DEVICE=cuda: a host without a card (or a
